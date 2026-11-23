@@ -41,16 +41,19 @@ jobs:
           DATA_DIR: ${{ runner.temp }}/smoke-data
           UPLOAD_DIR: ${{ runner.temp }}/smoke-uploads
           ADMIN_EMAIL: ci@example.com
-          ADMIN_PASSWORD: ci-password-123
         run: |
+          # Throwaway credentials for this temporary server only, generated fresh on every run.
+          ADMIN_PASSWORD="$(openssl rand -hex 16)"
+          echo "::add-mask::$ADMIN_PASSWORD"
+          export ADMIN_PASSWORD
           npm start > server.log 2>&1 &
           SERVER_PID=$!
           trap 'kill $SERVER_PID 2>/dev/null || true; echo "--- server log"; cat server.log' EXIT
           for i in $(seq 1 30); do curl -fs http://localhost:4000/api/health >/dev/null && break; sleep 1; done
           set -x
           curl -fsS http://localhost:4000/api/health
-          curl -fsS -c jar.txt -H 'Content-Type: application/json' \
-            -d '{"email":"ci@example.com","password":"ci-password-123"}' http://localhost:4000/api/auth/login
+          jq -n --arg email "$ADMIN_EMAIL" --arg password "$ADMIN_PASSWORD" '{email: $email, password: $password}' > login.json
+          curl -fsS -c jar.txt -H 'Content-Type: application/json' -d @login.json http://localhost:4000/api/auth/login
           curl -fsS -b jar.txt http://localhost:4000/api/admin/dashboard > /dev/null
           curl -fsS http://localhost:4000/api/public/home > /dev/null
           curl -fsS http://localhost:4000/ | grep -q 'id="root"'

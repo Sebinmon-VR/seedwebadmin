@@ -43,7 +43,7 @@ password is set, a random one is printed in the console. To add an admin or rese
 password from the command line:
 
 ```bash
-npm run admin:create -- someone@example.com "NewPassword123" "Their Name"
+npm run admin:create -- someone@example.com '<new-password>' "Their Name"
 ```
 
 ### Configuration (`.env`)

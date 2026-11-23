@@ -108,7 +108,11 @@ export function purgeExpiredSessions() {
 export async function ensureFirstAdmin() {
   const { n } = db.prepare('SELECT COUNT(*) AS n FROM users').get();
   if (n > 0) return;
-  const password = config.adminPassword || crypto.randomBytes(9).toString('base64url');
+  // Hold ADMIN_PASSWORD to the same minimum as every other password; fall back to a random one.
+  const weak = config.adminPassword ? validatePassword(config.adminPassword) : null;
+  if (weak) console.warn(`ADMIN_PASSWORD ignored: ${weak} A random password was generated instead.`);
+  const generated = !config.adminPassword || !!weak;
+  const password = generated ? crypto.randomBytes(9).toString('base64url') : config.adminPassword;
   db.prepare('INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)').run(
     'Administrator',
     config.adminEmail,
@@ -116,6 +120,6 @@ export async function ensureFirstAdmin() {
   );
   const line = '-'.repeat(60);
   console.log(`\n${line}\n First admin account created\n   Email:    ${config.adminEmail}`);
-  if (!config.adminPassword) console.log(`   Password: ${password}\n   (Change it from Settings > My account after signing in.)`);
+  if (generated) console.log(`   Password: ${password}\n   (Change it from My account after signing in.)`);
   console.log(`${line}\n`);
 }
