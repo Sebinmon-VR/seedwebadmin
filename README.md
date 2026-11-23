@@ -119,7 +119,7 @@ That folder survives restarts and redeploys. The site URL, HTTPS cookies and pro
 
 1. **Create the Web App.** In the Azure portal, go to **Create a resource → Web App** and choose:
    - **Name:** `seedwebadmin` (or another name). The panel will be at `https://<name>.azurewebsites.net`.
-   - **Publish:** Code. **Runtime stack:** Node 22 LTS. **Operating system:** Linux.
+   - **Publish:** Code. **Runtime stack:** Node 24 LTS. **Operating system:** Linux.
    - **Pricing plan:** Basic B1, which includes 10 GB of storage and Always On. Free F1 works for a trial, but it has 1 GB of storage and sleeps when idle.
 2. **Configure it.** In the Web App:
    - **Settings → Environment variables.** Add:

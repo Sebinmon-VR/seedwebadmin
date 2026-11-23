@@ -1,4 +1,4 @@
-# Build, smoke-test and deploy the control panel to Azure App Service (Linux, Node 22).
+# Build, smoke-test and deploy the control panel to Azure App Service (Linux, Node 24 LTS).
 #
 # One-time setup (see README "Deploying to Azure"):
 #   - Repository secret   AZURE_WEBAPP_PUBLISH_PROFILE = contents of the Web App's publish profile
@@ -27,7 +27,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '22.x'
+          node-version: '24.x'
           cache: npm
 
       - name: Install production dependencies
