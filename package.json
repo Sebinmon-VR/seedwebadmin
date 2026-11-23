@@ -1,0 +1,22 @@
+{
+  "name": "seedwebadmin",
+  "version": "1.0.0",
+  "private": true,
+  "description": "General control panel for managing website content (posts, images, videos, live events, notices) and receiving admission enquiries.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning --env-file-if-exists=.env server/index.js",
+    "dev": "node --disable-warning=ExperimentalWarning --env-file-if-exists=.env --watch server/index.js",
+    "admin:create": "node --disable-warning=ExperimentalWarning --env-file-if-exists=.env scripts/create-admin.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.0.0",
+    "helmet": "^8.1.0",
+    "multer": "^2.0.2",
+    "sanitize-html": "^2.17.0"
+  }
+}

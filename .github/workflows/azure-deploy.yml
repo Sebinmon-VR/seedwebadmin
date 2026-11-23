@@ -1,0 +1,101 @@
+# Build, smoke-test and deploy the control panel to Azure App Service (Linux, Node 22).
+#
+# One-time setup (see README "Deploying to Azure"):
+#   - Repository secret   AZURE_WEBAPP_PUBLISH_PROFILE = contents of the Web App's publish profile
+#   - Repository variable AZURE_WEBAPP_NAME            = the Web App name (defaults to "seedwebadmin")
+# Until the secret exists, the build still runs and the deploy step is skipped with a warning.
+
+name: Build and deploy to Azure App Service
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: azure-deploy
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          cache: npm
+
+      - name: Install production dependencies
+        run: npm ci --omit=dev
+
+      # Boot the real server against a throwaway database and hit the key endpoints,
+      # so a broken build never reaches the live site.
+      - name: Smoke test
+        env:
+          PORT: '4000'
+          DATA_DIR: ${{ runner.temp }}/smoke-data
+          UPLOAD_DIR: ${{ runner.temp }}/smoke-uploads
+          ADMIN_EMAIL: ci@example.com
+          ADMIN_PASSWORD: ci-password-123
+        run: |
+          npm start > server.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID 2>/dev/null || true; echo "--- server log"; cat server.log' EXIT
+          for i in $(seq 1 30); do curl -fs http://localhost:4000/api/health >/dev/null && break; sleep 1; done
+          set -x
+          curl -fsS http://localhost:4000/api/health
+          curl -fsS -c jar.txt -H 'Content-Type: application/json' \
+            -d '{"email":"ci@example.com","password":"ci-password-123"}' http://localhost:4000/api/auth/login
+          curl -fsS -b jar.txt http://localhost:4000/api/admin/dashboard > /dev/null
+          curl -fsS http://localhost:4000/api/public/home > /dev/null
+          curl -fsS http://localhost:4000/ | grep -q 'id="root"'
+
+      - name: Package app
+        run: |
+          mkdir -p release
+          cp -r package.json package-lock.json server admin scripts node_modules release/
+          (cd release && zip -qr ../app.zip .)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app
+          path: app.zip
+          retention-days: 7
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.webapp-url }}
+    steps:
+      - name: Check deployment secret
+        id: check
+        env:
+          PROFILE: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+        run: |
+          if [ -z "$PROFILE" ]; then
+            echo "::warning title=Not deployed::Add the AZURE_WEBAPP_PUBLISH_PROFILE repository secret to deploy to Azure (see README)."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/download-artifact@v4
+        if: steps.check.outputs.ready == 'true'
+        with:
+          name: app
+
+      - name: Deploy to Azure Web App
+        id: deploy
+        if: steps.check.outputs.ready == 'true'
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ vars.AZURE_WEBAPP_NAME || 'seedwebadmin' }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: app.zip
