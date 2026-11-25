@@ -10,6 +10,7 @@ import { HttpError, clientIp, nowIso, pageParams, likeTerm, fileUrl, embedUrl, l
 import { eventWhen, eventState } from './content.js';
 import { createEnquiry } from './enquiries.js';
 import { readSettings } from './account.js';
+import { siteImageMap } from './siteImages.js';
 
 export const publicRouter = express.Router();
 
@@ -150,7 +151,13 @@ publicRouter.get('/home', (_req, res) => {
     latest_posts: all(`SELECT * FROM posts WHERE ${p.where.join(' AND ')} ORDER BY published_at DESC LIMIT 6`, ...p.params).map((r) => pubPost(r)),
     featured_images: all(`SELECT * FROM gallery WHERE status = 'published' AND is_featured = 1 ORDER BY created_at DESC LIMIT 12`).map(pubImage),
     featured_videos: all(`SELECT * FROM videos WHERE status = 'published' AND is_featured = 1 ORDER BY created_at DESC LIMIT 6`).map(pubVideo),
+    site_images: siteImageMap(),
   });
+});
+
+/** Pictures replaced under "Website images": { items: { "team/principal": "https://…/uploads/…" } } */
+publicRouter.get('/site-images', (_req, res) => {
+  res.json({ items: siteImageMap() });
 });
 
 publicRouter.get('/posts', (req, res) => {

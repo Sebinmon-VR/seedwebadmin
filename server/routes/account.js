@@ -122,6 +122,7 @@ usersRouter.delete('/:id', (req, res) => {
 export const SETTINGS = [
   { name: 'site_name', type: 'text', max: 120, label: 'Website name' },
   { name: 'tagline', type: 'text', max: 200, label: 'Tagline' },
+  { name: 'website_url', type: 'url', label: 'Website address' },
   { name: 'contact_phone', type: 'text', max: 40, label: 'Phone' },
   { name: 'contact_email', type: 'email', max: 160, label: 'Email' },
   { name: 'whatsapp', type: 'text', max: 40, label: 'WhatsApp number' },

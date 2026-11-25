@@ -31,6 +31,8 @@ export const config = {
   adminDir: path.join(root, 'admin'),
   // WAL needs shared memory, which network file shares (like Azure's /home) don't support reliably.
   sqliteJournalMode: (env.SQLITE_JOURNAL_MODE || (onAzure ? 'DELETE' : 'WAL')).toUpperCase(),
+  // The website's address (where its site-images.json lives). Can also be set in Website settings.
+  websiteUrl: (env.WEBSITE_URL || '').trim().replace(/\/+$/, ''),
   allowedOrigins: (env.ALLOWED_ORIGINS || '')
     .split(',')
     .map((s) => s.trim().replace(/\/+$/, ''))

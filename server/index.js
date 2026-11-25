@@ -9,6 +9,7 @@ import { contentRouter } from './routes/content.js';
 import { enquiriesRouter } from './routes/enquiries.js';
 import { authRouter, usersRouter, settingsRouter, dashboardRouter } from './routes/account.js';
 import { publicRouter } from './routes/public.js';
+import { siteImagesRouter } from './routes/siteImages.js';
 
 fs.mkdirSync(config.uploadDir, { recursive: true });
 
@@ -25,7 +26,8 @@ app.use(
         defaultSrc: ["'self'"],
         scriptSrc: ["'self'"],
         styleSrc: ["'self'", "'unsafe-inline'"],
-        imgSrc: ["'self'", 'data:', 'blob:', 'https:'],
+        // http: only without HTTPS (local testing), so a website on http://localhost can be previewed
+        imgSrc: ["'self'", 'data:', 'blob:', 'https:', ...(config.cookieSecure ? [] : ['http:'])],
         mediaSrc: ["'self'", 'blob:', 'https:'],
         frameSrc: ['https://www.youtube.com', 'https://player.vimeo.com', 'https://www.facebook.com'],
         connectSrc: ["'self'"],
@@ -58,6 +60,7 @@ app.use('/api/admin/dashboard', dashboardRouter);
 app.use('/api/admin/enquiries', enquiriesRouter);
 app.use('/api/admin/users', usersRouter);
 app.use('/api/admin/settings', settingsRouter);
+app.use('/api/admin/site-images', siteImagesRouter);
 app.use('/api/admin', contentRouter);
 
 app.use('/api', (_req, _res, next) => next(new HttpError(404, 'Endpoint not found.')));
