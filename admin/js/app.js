@@ -6,6 +6,7 @@ import { posts, videos, events, notices } from './pages/content.js';
 import { gallery } from './pages/gallery.js';
 import { enquiries } from './pages/enquiries.js';
 import { settings, account, admins, integration } from './pages/settings.js';
+import { siteImages } from './pages/siteImages.js';
 
 const NAV = [
   { items: [{ path: 'dashboard', label: 'Dashboard', icon: 'grid', page: dashboard }] },
@@ -17,6 +18,7 @@ const NAV = [
       { path: 'videos', label: 'Videos', icon: 'video', page: videos },
       { path: 'events', label: 'Events & live', icon: 'calendar', page: events },
       { path: 'notices', label: 'Notices', icon: 'megaphone', page: notices },
+      { path: 'site-images', label: 'Website images', icon: 'layout', page: siteImages },
     ],
   },
   { label: 'Admissions', items: [{ path: 'enquiries', label: 'Enquiries', icon: 'inbox', page: enquiries, countKey: 'enquiries' }] },

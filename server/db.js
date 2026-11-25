@@ -126,6 +126,16 @@ db.exec(`
     value TEXT
   );
 
+  -- Replacements for the website's built-in pictures ("Website images"). The key is the
+  -- picture's path on the website without folder or extension, e.g. "team/principal".
+  CREATE TABLE IF NOT EXISTS site_images (
+    key           TEXT PRIMARY KEY,
+    file          TEXT NOT NULL,
+    original_name TEXT,
+    updated_by    INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    updated_at    TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+  );
+
   CREATE INDEX IF NOT EXISTS idx_posts_status    ON posts(status, published_at);
   CREATE INDEX IF NOT EXISTS idx_gallery_album   ON gallery(album);
   CREATE INDEX IF NOT EXISTS idx_events_start    ON events(start_at);
